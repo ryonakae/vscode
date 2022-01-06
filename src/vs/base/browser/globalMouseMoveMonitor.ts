@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as dom from 'vs/base/browser/dom';
-import { IframeUtils } from 'vs/base/browser/iframe';
+// import { IframeUtils } from 'vs/base/browser/iframe';
 import { StandardMouseEvent } from 'vs/base/browser/mouseEvent';
 import { DisposableStore, IDisposable } from 'vs/base/common/lifecycle';
 import { isIOS } from 'vs/base/common/platform';
@@ -88,17 +88,18 @@ export class GlobalMouseMoveMonitor<R extends { buttons: number; }> implements I
 		this._mouseMoveCallback = mouseMoveCallback;
 		this._onStopCallback = onStopCallback;
 
-		const windowChain = IframeUtils.getSameOriginWindowChain();
+		// const windowChain = IframeUtils.getSameOriginWindowChain();
 		const mouseMove = isIOS ? 'pointermove' : 'mousemove'; // Safari sends wrong event, workaround for #122653
 		const mouseUp = 'mouseup';
 
-		const listenTo: (Document | ShadowRoot)[] = windowChain.map(element => element.window.document);
-		const shadowRoot = dom.getShadowRoot(initialElement);
-		if (shadowRoot) {
-			listenTo.unshift(shadowRoot);
-		}
+		// const listenTo: (Document | ShadowRoot)[] = windowChain.map(element => element.window.document);
+		const listenTo2 = Array.from(document.querySelectorAll('.monaco-editor'));
+		// const shadowRoot = dom.getShadowRoot(initialElement);
+		// if (shadowRoot) {
+		// 	listenTo.unshift(shadowRoot);
+		// }
 
-		for (const element of listenTo) {
+		for (const element of listenTo2) {
 			this._hooks.add(dom.addDisposableThrottledListener(element, mouseMove,
 				(data: R) => {
 					if (data.buttons !== initialButtons) {
@@ -113,27 +114,27 @@ export class GlobalMouseMoveMonitor<R extends { buttons: number; }> implements I
 			this._hooks.add(dom.addDisposableListener(element, mouseUp, (e: MouseEvent) => this.stopMonitoring(true)));
 		}
 
-		if (IframeUtils.hasDifferentOriginAncestor()) {
-			let lastSameOriginAncestor = windowChain[windowChain.length - 1];
-			// We might miss a mouse up if it happens outside the iframe
-			// This one is for Chrome
-			this._hooks.add(dom.addDisposableListener(lastSameOriginAncestor.window.document, 'mouseout', (browserEvent: MouseEvent) => {
-				let e = new StandardMouseEvent(browserEvent);
-				if (e.target.tagName.toLowerCase() === 'html') {
-					this.stopMonitoring(true);
-				}
-			}));
-			// This one is for FF
-			this._hooks.add(dom.addDisposableListener(lastSameOriginAncestor.window.document, 'mouseover', (browserEvent: MouseEvent) => {
-				let e = new StandardMouseEvent(browserEvent);
-				if (e.target.tagName.toLowerCase() === 'html') {
-					this.stopMonitoring(true);
-				}
-			}));
-			// This one is for IE
-			this._hooks.add(dom.addDisposableListener(lastSameOriginAncestor.window.document.body, 'mouseleave', (browserEvent: MouseEvent) => {
-				this.stopMonitoring(true);
-			}));
-		}
+		// if (IframeUtils.hasDifferentOriginAncestor()) {
+		// 	let lastSameOriginAncestor = windowChain[windowChain.length - 1];
+		// 	// We might miss a mouse up if it happens outside the iframe
+		// 	// This one is for Chrome
+		// 	this._hooks.add(dom.addDisposableListener(lastSameOriginAncestor.window.document, 'mouseout', (browserEvent: MouseEvent) => {
+		// 		let e = new StandardMouseEvent(browserEvent);
+		// 		if (e.target.tagName.toLowerCase() === 'html') {
+		// 			this.stopMonitoring(true);
+		// 		}
+		// 	}));
+		// 	// This one is for FF
+		// 	this._hooks.add(dom.addDisposableListener(lastSameOriginAncestor.window.document, 'mouseover', (browserEvent: MouseEvent) => {
+		// 		let e = new StandardMouseEvent(browserEvent);
+		// 		if (e.target.tagName.toLowerCase() === 'html') {
+		// 			this.stopMonitoring(true);
+		// 		}
+		// 	}));
+		// 	// This one is for IE
+		// 	this._hooks.add(dom.addDisposableListener(lastSameOriginAncestor.window.document.body, 'mouseleave', (browserEvent: MouseEvent) => {
+		// 		this.stopMonitoring(true);
+		// 	}));
+		// }
 	}
 }
